@@ -1,16 +1,17 @@
 import hmac
 import logging
-import random
 
-from fastapi import Depends, status, HTTPException, Response, APIRouter
+from fastapi import Depends, status, HTTPException, Response, APIRouter, Request
 from redis import Redis
 
+from core.redis_conf import get_redis
+from database.models.auth import User
 from . import schemas
 from .depends import get_form_data, validate_code
-from core.redis_conf import get_redis
 from .jwt_module import jwt_schemas
 from .jwt_module.creator import create_access_token, create_refresh_token
 from .jwt_module.depends import get_user_from_token, get_user_id_from_refresh_token
+from .services import UserService
 from .utils import send_verification_code
 
 router: APIRouter = APIRouter(
@@ -45,6 +46,7 @@ async def auth_user(
 
 @router.get("/verify_code")
 async def verify_code(
+        request: Request,
         response: Response,
         user_auth_info: schemas.UserAuthInfo = Depends(validate_code),
         redis_client: Redis = Depends(get_redis)
@@ -53,6 +55,7 @@ async def verify_code(
     second authorization handler, user has received the code, and will enter it to form with code
     set cookies with access and refresh token with httpOnly
     :param response: base fastapi response
+    :param request: fastapi request
     :param user_auth_info: validated user information
     :param redis_client: redis connection
     :return: None(only set cookies)
@@ -73,31 +76,32 @@ async def verify_code(
         # delete code from redis
         redis_client.delete(user_auth_info.phone_number.phone_number)
         # insert or get user from db
-        user = schemas.User(
-            id=random.randint(0, 10 ** 6),
-            phone_number=user_auth_info.phone_number,
-        )
-        database[user.id] = user
+        # create user schema
+        user_to_create_schema = schemas.User(phone_number=user_auth_info.phone_number)
+
+        # db business logic
+        user_model = await UserService.get_user(user_to_create_schema, request.state.db)
+        if user_model is None:
+            user_model: User = await UserService.create_user(
+                user_to_create_schema,
+                request.state.db,
+            )
+        user_to_create_schema.id = user_model.id
 
         # user auth success!
         # create jwt tokens
-        access_token: str = create_access_token(user=user)
-        refresh_token: str = create_refresh_token(user.id)
+        access_token: str = create_access_token(user=user_to_create_schema)
+        refresh_token: str = create_refresh_token(user_to_create_schema.id)
 
         # set jwt tokens in cookies
-        response.set_cookie(
-            key=jwt_schemas.TokenType.access_token.value,
-            value=access_token,
-            httponly=True,
-            secure=False,  # MAKE TRUE ON PRODUCTION
-        )
         response.set_cookie(
             key=jwt_schemas.TokenType.refresh_token.value,
             value=refresh_token,
             httponly=True,
             secure=False,  # MAKE TRUE ON PRODUCTION
         )
-        return {"message": "auth success"}
+
+        return {jwt_schemas.TokenType.access_token.value: access_token}
 
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

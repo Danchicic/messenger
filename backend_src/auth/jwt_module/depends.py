@@ -105,8 +105,19 @@ def _get_access_token_from_cookie(
     return token
 
 
-def  get_user_from_token(
-        token: str = Depends(_get_access_token_from_cookie),
+def _get_token_from_header(
+        request: Request,
+):
+    if request.headers.get("Authorization"):
+        return request.headers.get("Authorization").split("Bearer ")[-1]
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="You need to put token to perform this route"
+    )
+
+
+def get_user_from_token(
+        token: str = Depends(_get_token_from_header),
 ) -> schemas.User:
     """
     extract access jwt token payload and return user schema
@@ -116,7 +127,6 @@ def  get_user_from_token(
     """
     try:
         payload: dict = jwt.decode(token, config.jwt.public_key_path, algorithms=[config.jwt.algorithm])
-        print(payload)
     except jwt.InvalidTokenError:
         logging.exception("invalid token")
         raise HTTPException(
