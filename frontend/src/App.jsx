@@ -1,35 +1,35 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import {BrowserRouter} from "react-router-dom";
+import AppRouter from "./components/AppRouter.jsx";
+import {useEffect} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {setIsLogged} from "./redux/loginSlice.js";
+
+const host = "http://127.0.0.1:8000"
 
 function App() {
-  const [count, setCount] = useState(0)
+    const isLogged = useSelector((state) => state.login);
+    const dispatch = useDispatch();
+    console.log(isLogged);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    useEffect(() => {
+        const amILogged = async () => {
+            let resp = await fetch(`${host}/auth/protected`);
+            if (resp.ok) {
+                dispatch(setIsLogged(true));
+            } else {
+                dispatch(setIsLogged(false));
+            }
+
+        }
+        amILogged();
+    }, [])
+    return (
+        <BrowserRouter>
+            <AppRouter/>
+        </BrowserRouter>
+
+    )
 }
 
 export default App
