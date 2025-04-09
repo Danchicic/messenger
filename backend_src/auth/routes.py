@@ -80,7 +80,7 @@ async def verify_code(
         user_to_create_schema = schemas.User(phone_number=user_auth_info.phone_number)
 
         # db business logic
-        user_model = await UserService.get_user(user_to_create_schema, request.state.db)
+        user_model = await UserService.get_user(user_auth_info.phone_number.phone_number, request.state.db)
         if user_model is None:
             user_model: User = await UserService.create_user(
                 user_to_create_schema,
@@ -111,27 +111,21 @@ async def verify_code(
 
 @router.get("/refresh_token")
 async def get_new_access_token(
-        response: Response,
+        request: Request,
         user_id: int = Depends(get_user_id_from_refresh_token),
 ):
     """
     using to update access token
-    :param response:
+    :param request:
     :param user_id: user id from refresh token(token after validation)
     :return: None (set new access token in cookies)
     """
     # get user from database
-    user = database[user_id]
+    user = await UserService.get_user(user_id, request.state.db, by="id")
 
     # set jwt
     access_token = create_access_token(user=user)
-
-    response.set_cookie(
-        key=jwt_schemas.TokenType.access_token.value,
-        value=access_token,
-        httponly=True,
-        secure=False,  # MAKE TRUE ON PRODUCTION
-    )
+    return {jwt_schemas.TokenType.access_token.value: access_token}
 
 
 @router.get("/logout")
@@ -145,9 +139,6 @@ async def logout(
     :param _: uses to check that user logged
     :return: None (delete both tokens cookies)
     """
-    response.delete_cookie(
-        key=jwt_schemas.TokenType.access_token.value,
-    )
     response.delete_cookie(
         key=jwt_schemas.TokenType.refresh_token.value,
     )
