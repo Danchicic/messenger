@@ -6,7 +6,10 @@ const loginSlice = createSlice({
     initialState: false,
     reducers: {
         setIsLogged: (state, action) => {
-            return action.payload;
+            // console.log("i get kak", action.payload)
+            console.log("redux", state, action.payload);
+            localStorage.setItem("access_token", action.payload.token)
+            return action.payload.isLogged;
         }
     }
 })

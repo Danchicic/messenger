@@ -9,6 +9,8 @@ const privateRoutes = [
 
 const publicRoutes = [
     {path: "/", component: MainPage, exact: true},
+    // {path: "/auth/login", component: Auth, exact: false},
+
     // {path: "*", component: NotFound404, exact: false},
 ]
 privateRoutes.forEach(
