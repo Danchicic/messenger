@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useParams} from "react-router-dom";
 import axios from "axios";
+import Input from "../components/UI/Input.jsx";
 
 const ChatPage = () => {
     const params = useParams();
@@ -73,9 +74,9 @@ const ChatPage = () => {
             </ul>
 
             <div className="flex gap-2 px-8">
-                <input type="text"
+                <Input type="text"
                        onChange={(event) => setUserInput(event.target.value)}
-                       className="w-60 px-1 py-2 rounded-md border-1 outline-blue-500 border-blue-500 "/>
+                />
                 <button onClick={sendUserMessage}>Send</button>
             </div>
         </div>

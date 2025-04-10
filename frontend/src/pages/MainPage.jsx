@@ -1,4 +1,6 @@
 import React, {useEffect, useState} from 'react';
+import {createNewChat} from "../api/Chats.js";
+import Input from "../components/UI/Input.jsx";
 
 const host = "http://127.0.0.1:8000"
 
@@ -22,11 +24,12 @@ const MainPage = () => {
     // let chats = getChats()
     return (
         <>
-            <h1>All chats</h1>
-            <input type="text" onChange={(event) => setChatName(event.target.value)}/>
-            <button> Create new chat</button>
+            <h1
+            className="mb-4">All chats</h1>
+            <Input type="text" onChange={(event) => setChatName(event.target.value)}/>
+            <button onClick={async () => await createNewChat(chatName)}> Create new chat</button>
             {/*<button onClick={getChats}></button>*/}
-            <div>
+            <div className="mt-4">
                 {Object.keys(chats).map((chat) => (
                     <li key={chats[chat]}>
                         <a href={`/chats/${chat}`}>
