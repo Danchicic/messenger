@@ -6,6 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 from database import init_models
 from core.redis_conf import init_redis, close_redis
 from database import async_session
+from modules.chat.services import fill_users_sockets
 from routes import main_router
 
 
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
     )
     init_redis()
     await init_models()
+    await fill_users_sockets()
     yield
     close_redis()
 
@@ -35,9 +37,13 @@ app.add_middleware(
 )
 
 
+@app.get("/health")
+async def health():
+    return {"status": "OK"}
+
+
 @app.middleware("http")
 async def db_session_middleware(request: Request, call_next):
-    print("cc", request.cookies)
     async with async_session() as session:
         request.state.db = session
         response = await call_next(request)

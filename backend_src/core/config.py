@@ -47,3 +47,10 @@ def load_config() -> Config:
             token_type_field="token_type"
         ),
     )
+
+
+users_sockets: dict = {
+    "chat_name": {
+        "sockets": [],
+    }
+}
