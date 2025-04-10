@@ -80,7 +80,11 @@ async def verify_code(
         user_to_create_schema = schemas.User(phone_number=user_auth_info.phone_number)
 
         # db business logic
-        user_model = await UserService.get_user(user_auth_info.phone_number.phone_number, request.state.db)
+        user_model = await UserService.get_user(
+            user_auth_info.phone_number.phone_number,
+            request.state.db,
+            by='telephone_number'
+        )
         if user_model is None:
             user_model: User = await UserService.create_user(
                 user_to_create_schema,
@@ -90,7 +94,7 @@ async def verify_code(
 
         # user auth success!
         # create jwt tokens
-        access_token: str = create_access_token(user=user_to_create_schema)
+        access_token: str = create_access_token(user=user_model)
         refresh_token: str = create_refresh_token(user_to_create_schema.id)
 
         # set jwt tokens in cookies

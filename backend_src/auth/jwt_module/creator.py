@@ -1,16 +1,16 @@
 import datetime
 
-from .. import schemas
-from . import jwt_schemas
-from core.config import load_config
-
 import jwt
+
+from core.config import load_config
+from database.models.auth import User
+from . import jwt_schemas
 
 config = load_config()
 
 
 def create_access_token(
-        user: schemas.User,
+        user: User,
 ) -> str:
     """
     function creates access token using user payload
@@ -20,7 +20,7 @@ def create_access_token(
     now = datetime.datetime.now(datetime.UTC)
     jwt_payload = {
         "sub": str(user.id),
-        "phone_number": user.phone_number.phone_number,
+        "phone_number": user.phone_number,
         "exp": now + datetime.timedelta(
             minutes=config.jwt.access_token_expire_minutes
         ),

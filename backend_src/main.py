@@ -28,7 +28,7 @@ app = FastAPI(
 app.include_router(main_router)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -37,6 +37,7 @@ app.add_middleware(
 
 @app.middleware("http")
 async def db_session_middleware(request: Request, call_next):
+    print("cc", request.cookies)
     async with async_session() as session:
         request.state.db = session
         response = await call_next(request)
