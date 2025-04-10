@@ -1,5 +1,6 @@
 import MainPage from "../pages/MainPage.jsx";
 import ChatPage from "../pages/ChatPage.jsx";
+import Auth from "../pages/Auth.jsx"
 // import NotFound404 from "../pages/NotFound404.jsx";
 
 const privateRoutes = [
@@ -9,7 +10,7 @@ const privateRoutes = [
 
 const publicRoutes = [
     {path: "/", component: MainPage, exact: true},
-    // {path: "/auth/login", component: Auth, exact: false},
+    {path: "/auth/login", component: Auth, exact: true},
 
     // {path: "*", component: NotFound404, exact: false},
 ]

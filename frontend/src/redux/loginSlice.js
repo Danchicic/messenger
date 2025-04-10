@@ -8,7 +8,7 @@ const loginSlice = createSlice({
         setIsLogged: (state, action) => {
             // console.log("i get kak", action.payload)
             console.log("redux", state, action.payload);
-            localStorage.setItem("access_token", action.payload.token)
+            localStorage.setItem("token", action.payload.token)
             return action.payload.isLogged;
         }
     }

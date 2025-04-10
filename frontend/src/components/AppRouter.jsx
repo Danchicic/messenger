@@ -1,10 +1,10 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Navigate, Route, Routes} from "react-router-dom";
 import {userRoutes} from "../routes/index.js";
 import {useDispatch, useSelector} from "react-redux";
 import {setIsLogged} from "../redux/loginSlice.js";
+import {amILogged} from "../api/Auth.js";
 
-const host = "http://127.0.0.1:8000"
 
 function checkRouterByAuth(route, index, isAuth) {
     if (route.path.includes("auth") && isAuth) {
@@ -20,35 +20,28 @@ function checkRouterByAuth(route, index, isAuth) {
 }
 
 const AppRouter = () => {
-    const isLogged = useSelector((state) => state.login);
     const dispatch = useDispatch();
-    console.log(isLogged);
+    const [isAuthChecked, setIsAuthChecked] = useState(false); // Добавляем состояние
+    const isLogged = useSelector((state) => state.login);
+
 
     useEffect(() => {
-        const amILogged = async () => {
-            let resp = await fetch(`${host}/auth/protected`, {
-                headers: {
-                    "Authorization": "Bearer " + localStorage.getItem("access_token")
-                }
-            });
-
-            if (resp.ok) {
-                // check that access token is normal
-                dispatch(setIsLogged({isLogged: true, token: await resp.json()['access_token']}));
-            } else {
-                // try to refresh
-                let resp = await fetch(`${host}/auth/refresh_token`);
-                if (resp.ok) {
-                    dispatch(setIsLogged({isLogged: true, token: await resp.json()['access_token']}));
-                } else {
-                    // we need to login
-                    dispatch(setIsLogged({isLogged: false, token: ""}));
-                }
-            }
-
+        const checkAuth = async () => {
+            console.log('use effect')
+            const authDataFromBack = await amILogged(dispatch);
+            dispatch(setIsLogged(authDataFromBack));
+            setIsAuthChecked(true);
         }
-        amILogged();
-    }, [])
+
+        checkAuth();
+    }, [dispatch]);
+
+
+    console.log("after am i logged", isLogged);
+    console.log(userRoutes);
+    if (!isAuthChecked) {
+        return <div>Loading...</div>; // Или любой другой
+    }
     return (
         <>
             <Routes>
