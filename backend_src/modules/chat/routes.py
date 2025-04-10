@@ -15,7 +15,6 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-
 @router.get("/chats")
 async def list_chats():
     return {"chats": await get_all_chats()}
@@ -61,20 +60,24 @@ async def websocket_endpoint(websocket: WebSocket, chat_name: str):
     try:
         while True:
             # wait for text from users
-            message_from_user = await websocket.receive_text()
-            # save message in db
-            await insert_message(
-                message_from_user,
-                chat_name,
-                user.phone_number.phone_number,
-                get_redis()
-            )
-            # send current message to all subscribed users
-            for socket_to_send in users_sockets[chat_name]["sockets"]:
-                socket_to_send: WebSocket
-                await socket_to_send.send_text(json.dumps([{
-                    "message": message_from_user,
-                    "user_phone": user.phone_number.phone_number,
-                }]))
+            event_from_user = await websocket.receive_json()
+            if event_from_user.get("type") == "message":
+                message_from_user = event_from_user["message"]
+                # save message in db
+                await insert_message(
+                    message_from_user,
+                    chat_name,
+                    user.phone_number.phone_number,
+                    get_redis()
+                )
+                # send current message to all subscribed users
+                for socket_to_send in users_sockets[chat_name]["sockets"]:
+                    socket_to_send: WebSocket
+                    await socket_to_send.send_text(json.dumps([{
+                        "message": message_from_user,
+                        "user_phone": user.phone_number.phone_number,
+                    }]))
+            elif event_from_user.get("type") == "file":
+                pass
     except WebSocketDisconnect:
         users_sockets[chat_name]["sockets"].remove(websocket)

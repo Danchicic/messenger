@@ -1,6 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useParams} from "react-router-dom";
-import axios from "axios";
 import Input from "../components/UI/Input.jsx";
 
 const ChatPage = () => {
@@ -13,7 +12,7 @@ const ChatPage = () => {
     const sendUserMessage = async () => {
         console.log(userInput);
         console.log('send message')
-        socket.send(userInput);
+        socket.send(JSON.stringify({message: userInput, type: "message"}));
     }
 
 
