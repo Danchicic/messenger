@@ -21,6 +21,7 @@ class AuthJWT(BaseModel):
 class Config(BaseModel):
     verification_code_time_expiration: int
     project_host: str
+    base_dir: str
     jwt: AuthJWT
 
     @field_validator("project_host")
@@ -30,7 +31,7 @@ class Config(BaseModel):
         return value
 
 
-def load_config() -> Config:
+def __load_config() -> Config:
     """
     return config in modules that requires settings
     :return: config with all parameters
@@ -38,6 +39,7 @@ def load_config() -> Config:
     return Config(
         verification_code_time_expiration=60 * 5,
         project_host="http://localhost:8000",
+        base_dir=str(Path(BASE_DIR.parent)),
         jwt=AuthJWT(
             public_key_path=Path(os.path.join(BASE_DIR.parent, "certs", "jwt-public.pem")).read_text(),
             private_key_path=Path(os.path.join(BASE_DIR.parent, "certs", "jwt-private.pem")).read_text(),
@@ -49,6 +51,7 @@ def load_config() -> Config:
     )
 
 
+config: Config = __load_config()
 users_sockets: dict = {
     "chat_name": {
         "sockets": [],

@@ -3,22 +3,20 @@ import logging
 
 from core.redis_conf import get_redis
 from core.config import users_sockets
+from modules.chat import schemas
 
 logger = logging.getLogger(__name__)
 
 
-async def insert_message(message: str, chat: str, user_phone: str, redis):
+async def insert_event(event: schemas.Message | schemas.File, chat: str, redis):
     chat_messages_list = json.loads(redis.hget(chat, "messages"))
     chat_messages_list.append(
-        {
-            "message": message,
-            "user_phone": user_phone
-        }
+        event.model_dump()
     )
     redis.hset(chat, "messages", json.dumps(chat_messages_list))
 
 
-async def get_all_chats() -> dict:
+async def get_all_chats() -> dict[str, list[schemas.Message | schemas.File]]:
     redis_client = get_redis()
     chats_resp = {}
     for chat in redis_client.scan_iter():

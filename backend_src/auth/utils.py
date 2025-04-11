@@ -1,9 +1,7 @@
 import logging
 import random
 
-from core.config import Config, load_config
-
-config: Config = load_config()
+from core.config import config
 
 
 def create_verification_code() -> int:

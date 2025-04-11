@@ -2,11 +2,10 @@ import datetime
 
 import jwt
 
-from core.config import load_config
+from core.config import config
 from database.models.auth import User
 from . import jwt_schemas
 
-config = load_config()
 
 
 def create_access_token(

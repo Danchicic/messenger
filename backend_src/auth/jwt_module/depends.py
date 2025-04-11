@@ -4,11 +4,9 @@ import logging
 import jwt
 from fastapi import Depends, HTTPException, status, Request
 
-from core.config import load_config
+from core.config import config
 from . import jwt_schemas
 from .. import schemas
-
-config = load_config()
 
 
 def _validate_access_token_payload(
